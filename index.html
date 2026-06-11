@@ -646,7 +646,30 @@ const state = {
   groups: [],
   startsAt: '',
   endsAt: '',
+  timeZone: detectTz(),
 };
+
+const TIMEZONES = [
+  { id: 'America/New_York',    label: 'Eastern Time (ET)' },
+  { id: 'America/Chicago',     label: 'Central Time (CT)' },
+  { id: 'America/Denver',      label: 'Mountain Time (MT)' },
+  { id: 'America/Los_Angeles', label: 'Pacific Time (PT)' },
+  { id: 'America/Anchorage',   label: 'Alaska Time (AKT)' },
+  { id: 'Pacific/Honolulu',    label: 'Hawaii Time (HT)' },
+  { id: 'UTC',                 label: 'UTC' },
+  { id: 'Europe/London',       label: 'London (GMT/BST)' },
+  { id: 'Europe/Berlin',       label: 'Central European Time (CET)' },
+  { id: 'Asia/Tokyo',          label: 'Japan Standard Time (JST)' },
+];
+
+function detectTz() {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York'; }
+  catch { return 'America/New_York'; }
+}
+
+function tzLabel(id) {
+  return (TIMEZONES.find(t => t.id === id) || {}).label || id.replace(/_/g, ' ');
+}
 
 const uiState = { openDropdown: null };
 
@@ -812,7 +835,18 @@ function renderTime() {
     <div class="date-field">
       <label for="endsAt">Ends At</label>
       <input class="date-input-field" type="date" id="endsAt" value="${state.endsAt}" />
+    </div>
+    <div class="date-field">
+      <label for="timeZone">Time Zone</label>
+      <select class="select-input" id="timeZone" style="min-width:240px">${tzOptions()}</select>
     </div>`;
+}
+
+function tzOptions() {
+  const tzs = [...TIMEZONES];
+  const detected = detectTz();
+  if (!tzs.some(t => t.id === detected)) tzs.unshift({ id: detected, label: tzLabel(detected) + ' — detected' });
+  return tzs.map(t => `<option value="${t.id}" ${state.timeZone === t.id ? 'selected' : ''}>${t.label}</option>`).join('');
 }
 
 function renderSummary() {
@@ -840,6 +874,7 @@ function renderSummary() {
       <div class="summary-row"><span class="summary-key">Groups</span><span class="summary-val">${state.groups.length ? state.groups.map(g=>`<span class="summary-tag">${esc(g)}</span>`).join('') : '<span class="empty-val">None added</span>'}</span></div>
       <div class="summary-row"><span class="summary-key">Starts at</span><span class="summary-val">${starts||'<span class="empty-val">No start date</span>'}</span></div>
       <div class="summary-row"><span class="summary-key">Ends at</span><span class="summary-val">${ends||'<span class="empty-val">No end date</span>'}</span></div>
+      <div class="summary-row"><span class="summary-key">Time zone</span><span class="summary-val">${tzLabel(state.timeZone)}</span></div>
     </div>`;
 }
 
@@ -863,6 +898,7 @@ function bindEvents() {
   document.getElementById('linkName')?.addEventListener('input', e => state.name = e.target.value);
   document.getElementById('startsAt')?.addEventListener('change', e => state.startsAt = e.target.value);
   document.getElementById('endsAt')?.addEventListener('change', e => state.endsAt = e.target.value);
+  document.getElementById('timeZone')?.addEventListener('change', e => state.timeZone = e.target.value);
 }
 
 function selectAccess(m) { state.accessMethod = m; render(); }
@@ -963,7 +999,7 @@ function todayStr() {
 }
 
 function openModal() {
-  Object.assign(state, {step:0, name:'', surveyTitle:'Microbiome & Cognitive Health Study', accessMethod:'', orgToggle:false, courses:[], teams:[], groups:[], startsAt:todayStr(), endsAt:'', editingRow:null});
+  Object.assign(state, {step:0, name:'', surveyTitle:'Microbiome & Cognitive Health Study', accessMethod:'', orgToggle:false, courses:[], teams:[], groups:[], startsAt:todayStr(), endsAt:'', timeZone:detectTz(), editingRow:null});
   document.getElementById('overlay').classList.remove('hidden');
   render();
 }
@@ -973,7 +1009,7 @@ function openConfigure(surveyName, rowEl) {
 }
 
 function openConfigureAtStep(surveyName, rowEl, step) {
-  Object.assign(state, {step: step, name: surveyName || '', surveyTitle:'Microbiome & Cognitive Health Study', accessMethod:'', orgToggle:false, courses:[], teams:[], groups:[], startsAt:todayStr(), endsAt:'', editingRow: rowEl || null});
+  Object.assign(state, {step: step, name: surveyName || '', surveyTitle:'Microbiome & Cognitive Health Study', accessMethod:'', orgToggle:false, courses:[], teams:[], groups:[], startsAt:todayStr(), endsAt:'', timeZone:detectTz(), editingRow: rowEl || null});
   document.getElementById('overlay').classList.remove('hidden');
   render();
 }
@@ -993,7 +1029,8 @@ function isDirty() {
     state.teams.length ||
     state.groups.length ||
     state.startsAt !== todayStr() || // pre-filled default doesn't count as a change
-    state.endsAt
+    state.endsAt ||
+    state.timeZone !== detectTz() // detected default doesn't count as a change
   );
 }
 
