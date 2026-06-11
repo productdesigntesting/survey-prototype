@@ -120,7 +120,7 @@ body {
 .link-row {
   display: grid;
   grid-template-columns: 1fr 150px 120px 180px;
-  padding: 14px 20px;
+  padding: 12px 20px;
   border-bottom: 1px solid #f0f0f0;
   align-items: start;
 }
@@ -128,7 +128,7 @@ body {
 
 .link-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
 
-.link-validity { font-size: 12.5px; color: #777; margin-bottom: 10px; cursor: pointer; width: fit-content; }
+.link-validity { font-size: 12.5px; color: #777; margin-bottom: 8px; cursor: pointer; width: fit-content; }
 .link-validity:hover { color: #1a56db; text-decoration: underline; }
 .link-validity.empty { color: #aaa; font-style: italic; }
 
@@ -137,8 +137,10 @@ body {
   padding-top: 2px; align-content: flex-start;
 }
 
-.link-groups { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.link-groups { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
 .link-groups:empty { display: none; }
+.badge-more { background: #fff; border: 1px dashed #c5c5c5; color: #777; cursor: pointer; }
+.badge-more:hover { border-color: #999; color: #444; }
 .col-empty { color: #ccc; font-size: 13px; }
 
 .link-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; align-items: center; }
@@ -965,7 +967,9 @@ function finish() {
     ? `<span class="badge badge-access">${state.accessMethod}</span>`
     : '<span class="col-empty">—</span>';
   const allGroups = [...state.courses, ...state.teams, ...state.groups];
-  const groupsHtml = allGroups.map(g => `<span class="badge badge-group">${esc(g)}</span>`).join('');
+  const MAX_CHIPS = 4; // keep rows compact; overflow folds into "+N more"
+  let groupsHtml = allGroups.slice(0, MAX_CHIPS).map(g => `<span class="badge badge-group">${esc(g)}</span>`).join('');
+  if (allGroups.length > MAX_CHIPS) groupsHtml += `<span class="badge badge-group badge-more">+${allGroups.length - MAX_CHIPS} more</span>`;
 
   const row = state.editingRow || document.getElementById('newLinkRow');
   if (!state.editingRow) {
