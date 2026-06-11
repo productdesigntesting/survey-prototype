@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Survey Sharing Modal Prototype</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f4f4f4;
+  min-height: 100vh;
+  color: #111;
+}
+
+/* ─── Top nav ─── */
+.topnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  height: 50px;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 13px;
+  color: #555;
+}
+.topnav-left { display: flex; align-items: center; gap: 6px; }
+.topnav-left a { color: #555; text-decoration: none; }
+.topnav-left a:hover { text-decoration: underline; }
+.topnav-right { display: flex; align-items: center; gap: 2px; }
+.tab {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  color: #555;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  user-select: none;
+}
+.tab:hover { background: #f5f5f5; }
+.tab.active { border-color: #222; color: #111; font-weight: 500; }
+
+/* ─── Page body ─── */
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 32px;
+}
+.page-title { font-size: 22px; font-weight: 700; margin-bottom: 20px; }
+
+/* ─── Sub-tabs ─── */
+.subtabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 24px;
+}
+.subtab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: #555;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  user-select: none;
+  white-space: nowrap;
+}
+.subtab:hover { color: #111; }
+.subtab.active { color: #111; font-weight: 600; border-bottom-color: #111; }
+.subtab-icon { font-size: 13px; }
+
+/* ─── Description + actions row ─── */
+.section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+.section-desc { font-size: 13px; color: #555; max-width: 580px; line-height: 1.5; }
+.header-actions { display: flex; gap: 10px; flex-shrink: 0; margin-top: 2px; }
+
+.btn-outline {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px;
+  border: 1.5px solid #ccc;
+  border-radius: 20px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-outline:hover { border-color: #999; background: #fafafa; }
+.btn-outline .plus { font-size: 16px; font-weight: 300; line-height: 1; }
+
+/* ─── Table ─── */
+.table-wrap { background: #fff; border-radius: 4px; border: 1px solid #e4e4e4; }
+
+.table-header {
+  display: grid;
+  grid-template-columns: 1fr 130px 200px 180px;
+  padding: 10px 20px;
+  border-bottom: 1px solid #e8e8e8;
+}
+.col-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #888;
+}
+
+.link-row {
+  display: grid;
+  grid-template-columns: 1fr 130px 200px 180px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  align-items: start;
+}
+.link-row:last-child { border-bottom: none; }
+
+.link-name { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+
+.link-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; align-items: center; }
+
+.tag {
+  display: flex; align-items: center; gap: 4px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #f0f0f0;
+  color: #444;
+}
+.tag.public { background: #e8f4f0; color: #1d7a50; }
+.tag.lock { background: #f0f0f0; color: #555; }
+
+.lock-icon { font-size: 11px; }
+
+.link-badges { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; min-height: 0; }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.badge-access  { background: #eef2ff; color: #3730a3; cursor: pointer; }
+.badge-anon    { background: #f0fdf4; color: #166534; cursor: pointer; }
+.badge-group   { background: #f5f5f5; color: #555; cursor: pointer; }
+.badge:hover   { filter: brightness(0.94); }
+
+.btn-configure {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 5px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  color: #444;
+  cursor: pointer;
+}
+.btn-configure:hover { background: #f5f5f5; border-color: #aaa; }
+
+.invited-col {
+  font-size: 14px;
+  color: #333;
+  padding-top: 2px;
+  text-align: center;
+}
+
+.dates-col { font-size: 13px; color: #555; }
+.date-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.date-row:last-child { margin-bottom: 0; }
+.date-input-mock {
+  border: 1px solid #d0d0d0;
+  border-radius: 3px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #aaa;
+  background: #fafafa;
+  width: 150px;
+}
+
+.status-col {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 2px;
+}
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #e6f4ec;
+  color: #1d7a50;
+}
+.btn-copy {
+  padding: 7px 14px;
+  background: #1a2c52;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-copy:hover { background: #253d72; }
+.kebab {
+  font-size: 18px;
+  color: #aaa;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  letter-spacing: 1px;
+}
+.kebab:hover { color: #555; }
+
+/* ─── Modal overlay ─── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.overlay.hidden { display: none; }
+
+.modal {
+  background: #fff;
+  border-radius: 4px;
+  width: 940px;
+  min-height: 460px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+  overflow: hidden;
+}
+
+.modal-close {
+  position: absolute;
+  top: 18px; right: 18px;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  background: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #666;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+.modal-close:hover { background: #f5f5f5; }
+
+.modal-body {
+  flex: 1;
+  padding: 40px 48px 24px;
+  overflow-y: auto;
+}
+
+.modal-survey-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #777;
+  margin-bottom: 4px;
+}
+.modal-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 8px;
+}
+.modal-desc {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.55;
+  margin-bottom: 28px;
+}
+
+/* ─── Modal footer ─── */
+.modal-footer {
+  padding: 16px 48px 28px;
+  border-top: 1px solid #f0f0f0;
+}
+.step-label { font-size: 12px; color: #999; text-align: center; margin-bottom: 10px; }
+.progress-bars { display: flex; gap: 8px; margin-bottom: 18px; }
+.progress-bar { flex: 1; height: 5px; border-radius: 3px; background: #e0e0e0; transition: background 0.25s; }
+.progress-bar.filled { background: #111; }
+.footer-actions { display: flex; align-items: center; gap: 10px; }
+
+/* ─── Buttons ─── */
+.btn { padding: 9px 22px; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: opacity 0.15s; }
+.btn:hover { opacity: 0.85; }
+.btn-primary { background: #1a56db; color: #fff; }
+.btn-secondary { background: none; border: 1px solid #ccc; color: #444; }
+.btn-success { background: #1a7a3c; color: #fff; }
+
+/* ─── Step 0: Name ─── */
+.field-label { font-size: 14px; font-weight: 600; color: #111; margin-bottom: 8px; display: block; }
+.text-input {
+  width: 320px; padding: 10px 12px;
+  border: 1px solid #aaa; border-radius: 3px;
+  font-size: 14px; color: #111; outline: none;
+}
+.text-input:focus { border-color: #1a56db; box-shadow: 0 0 0 2px rgba(26,86,219,0.12); }
+
+/* ─── Step 1: Access Methods ─── */
+.access-cards { display: flex; gap: 18px; margin-bottom: 20px; }
+.access-card {
+  flex: 1; border: 2px solid #e0e0e0; border-radius: 4px;
+  padding: 0 0 16px; cursor: pointer; transition: border-color 0.15s;
+  display: flex; flex-direction: column;
+}
+.access-card:hover { border-color: #bbb; }
+.access-card.selected { border-color: #111; }
+.card-icon {
+  width: 100%; height: 80px;
+  background: #f2f2f2;
+  border-radius: 2px 2px 0 0;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px;
+  color: #555;
+}
+.access-card.selected .card-icon { color: #111; background: #ebebeb; }
+.card-label { font-size: 14px; font-weight: 600; color: #111; text-align: center; margin-bottom: 6px; padding: 0 12px; }
+.card-desc { font-size: 12px; color: #777; text-align: center; line-height: 1.45; padding: 0 14px; margin-bottom: 14px; flex: 1; }
+.access-card.selected .card-desc { color: #444; }
+.card-radio { display: flex; justify-content: center; margin-top: auto; padding-bottom: 2px; }
+.radio-dot {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid #ccc; background: #fff; position: relative;
+}
+.access-card.selected .radio-dot { border-color: #111; background: #111; }
+.access-card.selected .radio-dot::after {
+  content: ''; position: absolute; inset: 3px; border-radius: 50%; background: #fff;
+}
+
+/* ─── Identity: 2-card layout + warning + sub-question ─── */
+.identity-cards { display: flex; gap: 18px; margin-bottom: 20px; justify-content: center; }
+.identity-cards .access-card { max-width: 420px; }
+.card-warning {
+  font-size: 12px; line-height: 1.45;
+  color: #92400e; background: #fffbeb;
+  border-top: 1px solid #fde68a;
+  padding: 10px 14px; text-align: left;
+  display: flex; gap: 7px; align-items: flex-start;
+  margin-top: auto;
+}
+.card-warning svg { flex-shrink: 0; margin-top: 1px; }
+.sub-question {
+  display: flex; align-items: flex-start; gap: 14px;
+  border: 1px solid #e4e4e4; border-left: 3px solid #1a56db;
+  border-radius: 4px; background: #fafbff;
+  padding: 16px 18px; margin-bottom: 4px;
+  animation: subFade 0.2s ease;
+}
+@keyframes subFade { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.sub-question-text { flex: 1; }
+.sub-question-title { font-size: 14px; font-weight: 600; color: #111; margin-bottom: 4px; }
+.sub-question-desc { font-size: 13px; color: #666; line-height: 1.5; }
+
+/* ─── Step 2: Invitee List ─── */
+.invitee-section { margin-bottom: 22px; }
+.section-heading {
+  font-size: 14px; font-weight: 700; color: #111;
+  margin-bottom: 10px; display: flex; align-items: center; gap: 10px;
+}
+.section-link { font-size: 13px; font-weight: 400; color: #1a56db; cursor: pointer; }
+.section-link:hover { text-decoration: underline; }
+.toggle-row { display: flex; align-items: center; gap: 12px; font-size: 14px; color: #333; }
+.toggle {
+  width: 40px; height: 22px; background: #ccc; border-radius: 11px;
+  position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0;
+}
+.toggle.on { background: #1a56db; }
+.toggle::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; transition: left 0.2s;
+}
+.toggle.on::after { left: 21px; }
+.select-input {
+  padding: 8px 30px 8px 12px; border: 1px solid #ccc; border-radius: 4px;
+  font-size: 14px; color: #333; background: #fff; cursor: pointer;
+  appearance: none; min-width: 180px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23555' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+}
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.chip {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border: 1px solid #d0d0d0;
+  border-radius: 3px; font-size: 13px; color: #333; background: #fff;
+}
+.chip-count { font-size: 12px; color: #888; font-weight: 600; }
+.chip-remove { color: #bbb; cursor: pointer; font-size: 15px; line-height: 1; }
+.chip-remove:hover { color: #666; }
+
+/* ─── Multi-select dropdown ─── */
+.multi-select { position: relative; display: inline-block; min-width: 220px; }
+.multi-select-trigger {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px;
+  font-size: 14px; color: #333; background: #fff; cursor: pointer;
+  min-width: 220px; user-select: none; transition: border-color 0.15s;
+}
+.multi-select-trigger:hover { border-color: #999; }
+.multi-select-trigger.open { border-color: #1a56db; box-shadow: 0 0 0 2px rgba(26,86,219,0.12); }
+.multi-select-trigger .ms-label { flex: 1; }
+.multi-select-trigger .ms-count {
+  background: #1a56db; color: #fff; border-radius: 10px;
+  font-size: 11px; font-weight: 600; padding: 1px 7px; flex-shrink: 0;
+}
+.multi-select-trigger .ms-chevron { flex-shrink: 0; color: #888; transition: transform 0.2s; }
+.multi-select-trigger.open .ms-chevron { transform: rotate(180deg); }
+.multi-select-panel {
+  position: absolute; top: calc(100% + 4px); left: 0;
+  min-width: 100%; background: #fff;
+  border: 1px solid #ddd; border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.13);
+  z-index: 50; overflow: hidden;
+}
+.multi-select-option {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px; font-size: 14px; color: #333; cursor: pointer;
+  user-select: none; transition: background 0.1s;
+}
+.multi-select-option:hover { background: #f5f7ff; }
+.multi-select-option.checked { background: #f0f4ff; color: #1a40b0; font-weight: 500; }
+.ms-checkbox {
+  width: 16px; height: 16px; border: 1.5px solid #ccc; border-radius: 3px;
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  background: #fff; transition: all 0.15s;
+}
+.multi-select-option.checked .ms-checkbox {
+  background: #1a56db; border-color: #1a56db;
+}
+.ms-checkmark {
+  display: none; color: #fff;
+}
+.multi-select-option.checked .ms-checkmark { display: block; }
+
+/* ─── Step 3: Time Period ─── */
+.date-field { margin-bottom: 20px; }
+.date-field label { display: block; font-size: 13px; font-weight: 500; color: #333; margin-bottom: 6px; }
+.date-input-field {
+  padding: 9px 12px; border: 1px solid #aaa; border-radius: 3px;
+  font-size: 14px; color: #111; width: 240px; outline: none;
+}
+.date-input-field:focus { border-color: #1a56db; box-shadow: 0 0 0 2px rgba(26,86,219,0.12); }
+
+/* ─── Summary ─── */
+.summary-card {
+  border: 1px solid #e4e4e4; border-radius: 4px;
+  padding: 20px 24px;
+}
+.summary-row { display: flex; align-items: flex-start; margin-bottom: 14px; font-size: 14px; }
+.summary-row:last-child { margin-bottom: 0; }
+.summary-key { width: 150px; color: #888; flex-shrink: 0; padding-top: 1px; }
+.summary-val { color: #111; font-weight: 500; flex: 1; }
+.summary-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #f0f0f0; border-radius: 3px; padding: 3px 8px;
+  font-size: 13px; color: #333; margin-right: 4px; margin-bottom: 4px;
+}
+.empty-val { color: #bbb; font-style: italic; font-weight: 400; }
+
+/* ─── Discard confirmation dialog ─── */
+.confirm-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 4px;
+  animation: confirmFade 0.15s ease;
+}
+.confirm-overlay.hidden { display: none; }
+@keyframes confirmFade { from { opacity: 0; } to { opacity: 1; } }
+.confirm-card {
+  background: #fff;
+  border: 1px solid #e4e4e4;
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+  width: 380px;
+  max-width: calc(100% - 48px);
+  padding: 26px 28px 22px;
+  text-align: center;
+  animation: confirmPop 0.18s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes confirmPop { from { transform: scale(0.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.confirm-icon {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: #fef3f2;
+  color: #d92d20;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+}
+.confirm-title { font-size: 17px; font-weight: 700; color: #111; margin-bottom: 8px; }
+.confirm-text { font-size: 13.5px; color: #666; line-height: 1.5; margin-bottom: 22px; }
+.confirm-actions { display: flex; gap: 10px; }
+.confirm-actions .btn { flex: 1; padding: 10px 16px; }
+.btn-danger { background: #d92d20; color: #fff; }
+
+/* ─── Prototype badge ─── */
+.proto-badge {
+  position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+  background: #f5a623; color: #fff;
+  font-size: 11px; font-weight: 700; padding: 3px 12px;
+  border-radius: 12px; letter-spacing: 0.05em; z-index: 200;
+  pointer-events: none;
+}
+</style>
+</head>
+<body>
+
+<div class="proto-badge">PROTOTYPE — Usability Test</div>
+
+<!-- ─── App shell ─── -->
+<div class="topnav">
+  <div class="topnav-left">
+    <a href="#">Surveys</a>
+    <span style="color:#bbb">/</span>
+    <span>Microbiome &amp; Cognitive Health Study</span>
+  </div>
+  <div class="topnav-right">
+    <span class="tab">Collaborate</span>
+    <span class="tab">Build</span>
+    <span class="tab">Results</span>
+    <span class="tab active">Distribute</span>
+    <span class="tab">Versions</span>
+  </div>
+</div>
+
+<div class="page">
+  <div class="page-title">Microbiome & Cognitive Health Study</div>
+
+  <!-- Sub-tabs -->
+  <div class="subtabs">
+    <div class="subtab active"><span class="subtab-icon">🔗</span> Survey Links</div>
+  </div>
+
+  <!-- Description + buttons -->
+  <div class="section-header">
+    <div class="section-desc">Response links are reusable survey access links that can be shared publicly or limited to specific participant groups and date ranges.</div>
+    <div class="header-actions">
+<button class="btn-outline" onclick="openModal()"><span class="plus">⊕</span> New Link</button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <div class="table-header">
+      <div class="col-label">Link Title</div>
+      <div class="col-label" style="text-align:center">Invited /<br>Completed</div>
+      <div class="col-label">Opens / Closes</div>
+      <div class="col-label">Status</div>
+    </div>
+
+    <!-- Row 1 -->
+    <div class="link-row">
+      <div>
+        <div class="link-name">Microbiome & Cognitive Health Study – Distribution Link</div>
+        <div class="link-badges"></div>
+        <button class="btn-configure">Configure Access</button>
+      </div>
+      <div class="invited-col">—</div>
+      <div class="dates-col">
+        <div class="date-row"><div class="date-input-mock">mm/dd/yyyy</div></div>
+        <div class="date-row"><div class="date-input-mock">mm/dd/yyyy</div></div>
+      </div>
+      <div class="status-col">
+        <span class="status-badge">Active</span>
+        <button class="btn-copy">Copy Link</button>
+        <span class="kebab">⋮</span>
+      </div>
+    </div>
+
+    <!-- New row added after creation (hidden initially) -->
+    <div class="link-row" id="newLinkRow" style="display:none">
+      <div>
+        <div class="link-name" id="newLinkName"></div>
+        <div class="link-badges" id="newLinkBadges"></div>
+        <button class="btn-configure">Configure Access</button>
+      </div>
+      <div class="invited-col" id="newLinkInvited">—</div>
+      <div class="dates-col">
+        <div class="date-row"><div class="date-input-mock" id="newLinkStart">mm/dd/yyyy</div></div>
+        <div class="date-row"><div class="date-input-mock" id="newLinkEnd">mm/dd/yyyy</div></div>
+      </div>
+      <div class="status-col">
+        <span class="status-badge">Active</span>
+        <button class="btn-copy">Copy Link</button>
+        <span class="kebab">⋮</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal ─── -->
+<div class="overlay hidden" id="overlay">
+  <div class="modal">
+    <button class="modal-close" id="closeBtn">×</button>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <div class="step-label" id="stepLabel"></div>
+      <div class="progress-bars" id="progressBars"></div>
+      <div class="footer-actions" id="footerActions"></div>
+    </div>
+
+    <!-- Discard confirmation -->
+    <div class="confirm-overlay hidden" id="confirmOverlay">
+      <div class="confirm-card">
+        <div class="confirm-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        </div>
+        <div class="confirm-title">Discard your changes?</div>
+        <div class="confirm-text">You've made selections that haven't been saved. If you close now, they'll be lost.</div>
+        <div class="confirm-actions">
+          <button class="btn btn-secondary" onclick="cancelDiscard()">Keep editing</button>
+          <button class="btn btn-danger" onclick="confirmDiscard()">Discard</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const state = {
+  step: 0,
+  name: '',
+  surveyTitle: 'Microbiome & Cognitive Health Study',
+  accessMethod: '',
+  anonymous: '',
+  showCompletion: false,
+  orgToggle: false,
+  courses: [],
+  teams: [],
+  groups: [],
+  startsAt: '',
+  endsAt: '',
+};
+
+const uiState = { openDropdown: null };
+
+// ── Icon library (Lucide-style line SVGs) ──
+const svg = (path, size=36) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+
+const icons = {
+  globe:      svg('<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>'),
+  mail:       svg('<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>'),
+  lock:       svg('<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'),
+  eyeOff:     svg('<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>'),
+  checkCircle:svg('<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>'),
+  shield:     svg('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'),
+  user:       svg('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'),
+  bigCheck:   svg('<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>', 56),
+};
+
+function render() {
+  renderFooter();
+  renderBody();
+}
+
+function renderFooter() {
+  const s = state.step;
+  // steps 1–4 map to Step 1/4 … Step 4/4; step 5 = summary (Step 4/4); step 6 = success
+  const labelMap = { 0:'', 1:'Step 1 / 4', 2:'Step 2 / 4', 3:'Step 3 / 4', 4:'Step 4 / 4', 5:'Step 4 / 4', 6:'' };
+  document.getElementById('stepLabel').textContent = labelMap[s] || '';
+
+  const filled = s === 0 ? 1 : s >= 5 ? 4 : s;
+  document.getElementById('progressBars').innerHTML = s === 6 ? '' :
+    Array.from({length:4}, (_,i) => `<div class="progress-bar ${i < filled ? 'filled':''}"></div>`).join('');
+
+  const a = document.getElementById('footerActions');
+  if (s === 0) {
+    a.innerHTML = `<button class="btn btn-primary" onclick="advance()">Next</button>`;
+  } else if (s >= 1 && s <= 4) {
+    a.innerHTML = `<button class="btn btn-secondary" onclick="back()">Back</button><button class="btn btn-primary" onclick="advance()">Next</button>`;
+  } else if (s === 5) {
+    a.innerHTML = `<button class="btn btn-secondary" onclick="back()">Back</button><button class="btn btn-success" onclick="finish()">Create Link</button>`;
+  } else {
+    a.innerHTML = `<button class="btn btn-primary" onclick="closeModal()">Done</button>`;
+  }
+}
+
+function renderBody() {
+  const b = document.getElementById('modalBody');
+  const steps = [renderName, renderAccess, renderIdentity, renderInvitee, renderTime, renderSummary, renderSuccess];
+  b.innerHTML = steps[state.step]();
+  bindEvents();
+}
+
+function renderName() {
+  return `
+    <div class="modal-survey-label">${state.surveyTitle}</div>
+    <div class="modal-title">Create a Participant Link</div>
+    <div class="modal-desc">This is how participants will respond to this survey.<br>Each survey can have multiple response links for different audiences.</div>
+    <label class="field-label" for="linkName">Name</label>
+    <input class="text-input" id="linkName" type="text" value="${esc(state.name)}" placeholder="e.g. Main Link" />`;
+}
+
+function renderAccess() {
+  const methods = [
+    { id:'Public', icon: icons.globe, desc:'Anyone with the link can respond. No login required.' },
+    { id:'Invite Only', icon: icons.mail, desc:'Only people you invite will be able to respond. They can already be logged in or use personalized links. Enables single-click access to the survey, but is less secure than requiring login.' },
+    { id:'Login Required', icon: icons.lock, desc:'Requiring login ensures that the person taking the survey has confirmed their identity. They must be a member of an invited group. Most secure, but requires the participant to login.' },
+  ];
+  const cards = methods.map(m => `
+    <div class="access-card ${state.accessMethod===m.id?'selected':''}" onclick="selectAccess('${m.id}')">
+      <div class="card-icon">${m.icon}</div>
+      <div class="card-label">${m.id}</div>
+      <div class="card-desc">${m.desc}</div>
+      <div class="card-radio"><div class="radio-dot"></div></div>
+    </div>`).join('');
+  return `
+    <div class="modal-survey-label">${state.surveyTitle}</div>
+    <div class="modal-title">Access Methods</div>
+    <div class="modal-desc">Choose how participants can access this survey link.</div>
+    <div class="access-cards">${cards}</div>`;
+}
+
+function renderIdentity() {
+  const warnIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`;
+  const opts = [
+    {
+      id: 'anonymous',
+      icon: icons.eyeOff,
+      label: 'Anonymous',
+      desc: 'Participants\' personal identification fields (first name, last name, email, and ID) are never revealed if they are available.'
+    },
+    {
+      id: 'identified',
+      icon: icons.user,
+      label: 'Identified',
+      desc: 'Participants\' personal identification fields (first name, last name, email, and ID) are revealed and available in reporting.'
+    },
+  ];
+  const cards = opts.map(o => `
+    <div class="access-card ${state.anonymous===o.id?'selected':''}" onclick="selectAnonymity('${o.id}')">
+      <div class="card-icon">${o.icon}</div>
+      <div class="card-label">${o.label}</div>
+      <div class="card-desc">${o.desc}</div>
+      ${o.warning ? `<div class="card-warning">${warnIcon}<span>${o.warning}</span></div>` : ''}
+      <div class="card-radio" ${o.warning?'style="padding-top:14px"':''}><div class="radio-dot"></div></div>
+    </div>`).join('');
+  const subQuestion = state.anonymous === 'anonymous' ? `
+    <div class="sub-question">
+      <div class="toggle ${state.showCompletion?'on':''}" onclick="toggleShowCompletion()"></div>
+      <div class="sub-question-text">
+        <div class="sub-question-title">Show invitee completion</div>
+        <div class="sub-question-desc">Invited participants' survey completion statuses will be visible, but their identities will not be attached to their responses.</div>
+      </div>
+    </div>` : '';
+  return `
+    <div class="modal-survey-label">${state.surveyTitle}</div>
+    <div class="modal-title">Identity &amp; Anonymity</div>
+    <div class="modal-desc">Control whether participant responses are tied to their identity or kept anonymous.</div>
+    <div class="identity-cards">${cards}</div>
+    ${subQuestion}`;
+}
+
+function multiSelect(key, placeholder, options, selected) {
+  const isOpen = uiState.openDropdown === key;
+  const chevron = `<svg class="ms-chevron" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
+  const checkmark = `<svg class="ms-checkmark" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+  const labelText = selected.length === 0 ? placeholder : selected.length === 1 ? selected[0] : placeholder;
+  const countBadge = selected.length > 1 ? `<span class="ms-count">${selected.length}</span>` : '';
+  const panel = isOpen ? `
+    <div class="multi-select-panel" data-panel="${key}">
+      ${options.map(opt => {
+        const checked = selected.includes(opt);
+        return `<div class="multi-select-option ${checked?'checked':''}" onclick="toggleOption('${key}','${esc(opt)}')">
+          <div class="ms-checkbox">${checkmark}</div>
+          ${esc(opt)}
+        </div>`;
+      }).join('')}
+    </div>` : '';
+  return `
+    <div class="multi-select" data-ms="${key}">
+      <div class="multi-select-trigger ${isOpen?'open':''}" onclick="toggleDropdown('${key}')">
+        <span class="ms-label">${selected.length === 1 ? esc(selected[0]) : esc(placeholder)}</span>
+        ${countBadge}
+        ${chevron}
+      </div>
+      ${panel}
+    </div>`;
+}
+
+function renderInvitee() {
+  const courseChips = state.courses.map(c => `
+    <span class="chip">
+      <span class="chip-count">${c==='Econ 101'?'85':c==='Math 53'?'250':c==='Bio 201'?'120':c==='CS 101'?'200':c==='Psych 110'?'95':'110'}</span>
+      ${esc(c)}
+      <span class="chip-remove" onclick="removeOption('courses','${esc(c)}')">×</span>
+    </span>`).join('');
+  const teamChips = state.teams.map(t => `
+    <span class="chip">
+      ${esc(t)}
+      <span class="chip-remove" onclick="removeOption('teams','${esc(t)}')">×</span>
+    </span>`).join('');
+  const groupChips = state.groups.map(g => `
+    <span class="chip">
+      ${esc(g)}
+      <span class="chip-remove" onclick="removeOption('groups','${esc(g)}')">×</span>
+    </span>`).join('');
+  return `
+    <div class="modal-survey-label">${state.surveyTitle}</div>
+    <div class="modal-title">Invitee List</div>
+    <div class="modal-desc">Add invitees to track completion rates. Only invitees in the added groups will be able to access the survey if set to Invite Only or Login Required.</div>
+    <div class="invitee-section">
+      <div class="section-heading">Organization</div>
+      <div class="toggle-row">
+        <div class="toggle ${state.orgToggle?'on':''}" id="orgToggle" onclick="toggleOrg()"></div>
+        Generic University
+      </div>
+    </div>
+    <div class="invitee-section">
+      <div class="section-heading">Course <a class="section-link">Set up</a></div>
+      ${multiSelect('courses', 'Select Course', ['Econ 101','Math 53','Bio 201','CS 101','Psych 110','Chem 201'], state.courses)}
+      <div class="chips">${courseChips}</div>
+    </div>
+    <div class="invitee-section">
+      <div class="section-heading">Team</div>
+      ${multiSelect('teams', 'Select Team', ['Research Team 1','Research Team 2'], state.teams)}
+      <div class="chips">${teamChips}</div>
+    </div>
+    <div class="invitee-section">
+      <div class="section-heading">Participant Group</div>
+      ${multiSelect('groups', 'Select Group', ['Cohort A','Cohort B','Bio Psych Survey Group'], state.groups)}
+      <div class="chips">${groupChips}</div>
+    </div>`;
+}
+
+function renderTime() {
+  return `
+    <div class="modal-survey-label">${state.surveyTitle}</div>
+    <div class="modal-title">Time Period</div>
+    <div class="modal-desc">When is this survey active?</div>
+    <div class="date-field">
+      <label for="startsAt">Starts At</label>
+      <input class="date-input-field" type="date" id="startsAt" value="${state.startsAt}" />
+    </div>
+    <div class="date-field">
+      <label for="endsAt">Ends At</label>
+      <input class="date-input-field" type="date" id="endsAt" value="${state.endsAt}" />
+    </div>`;
+}
+
+function renderSummary() {
+  const fmt = v => {
+    if (!v) return null;
+    const [y,m,d] = v.split('-').map(Number);
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[m-1]} ${d}, ${y}`;
+  };
+  const starts = fmt(state.startsAt);
+  const ends = fmt(state.endsAt);
+  const courseChips = state.courses.length
+    ? state.courses.map(c=>`<span class="summary-tag">${esc(c)}</span>`).join('')
+    : `<span class="empty-val">None added</span>`;
+  const anonLabels = {'anonymous':'Anonymous','identified':'Identified'};
+  const anonVal = anonLabels[state.anonymous]
+    ? `${anonLabels[state.anonymous]}${state.anonymous==='anonymous' && state.showCompletion ? ' · Show invitee completion' : ''}`
+    : '<span class="empty-val">Not set</span>';
+  return `
+    <div class="modal-survey-label">${state.surveyTitle}</div>
+    <div class="modal-title">Summary</div>
+    <div class="modal-desc">Here's how your survey is set up.</div>
+    <div class="summary-card">
+      <div class="summary-row"><span class="summary-key">Link name</span><span class="summary-val">${state.name||'<span class="empty-val">Not set</span>'}</span></div>
+      <div class="summary-row"><span class="summary-key">Access</span><span class="summary-val">${state.accessMethod||'<span class="empty-val">Not set</span>'}</span></div>
+      <div class="summary-row"><span class="summary-key">Anonymity</span><span class="summary-val">${anonVal}</span></div>
+      <div class="summary-row"><span class="summary-key">Organization</span><span class="summary-val">${state.orgToggle?'Generic University':'<span class="empty-val">Not enabled</span>'}</span></div>
+      <div class="summary-row"><span class="summary-key">Courses</span><span class="summary-val">${courseChips}</span></div>
+      <div class="summary-row"><span class="summary-key">Teams</span><span class="summary-val">${state.teams.length ? state.teams.map(t=>`<span class="summary-tag">${esc(t)}</span>`).join('') : '<span class="empty-val">None added</span>'}</span></div>
+      <div class="summary-row"><span class="summary-key">Groups</span><span class="summary-val">${state.groups.length ? state.groups.map(g=>`<span class="summary-tag">${esc(g)}</span>`).join('') : '<span class="empty-val">None added</span>'}</span></div>
+      <div class="summary-row"><span class="summary-key">Starts at</span><span class="summary-val">${starts||'<span class="empty-val">No start date</span>'}</span></div>
+      <div class="summary-row"><span class="summary-key">Ends at</span><span class="summary-val">${ends||'<span class="empty-val">No end date</span>'}</span></div>
+    </div>`;
+}
+
+function renderSuccess() {
+  const link = `https://pollev.com/s/${(state.name||'untitled').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')}-${Math.floor(1000+Math.random()*9000)}`;
+  state._generatedLink = link;
+  return `
+    <div style="text-align:center; padding: 20px 0 10px;">
+      <div style="margin-bottom:16px; color:#1a7a3c;">${icons.bigCheck}</div>
+      <div class="modal-title" style="margin-bottom:8px;">Your link is ready</div>
+      <div class="modal-desc" style="margin-bottom:32px;">${state.name ? `<strong>${esc(state.name)}</strong> has been created.` : 'Your participant link has been created.'} Share it with participants to start collecting responses.</div>
+      <div style="display:flex; align-items:center; gap:0; border:1.5px solid #d0d0d0; border-radius:6px; overflow:hidden; max-width:480px; margin:0 auto 16px;">
+        <div id="linkDisplay" style="flex:1; padding:12px 14px; font-size:13px; color:#333; background:#fafafa; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:monospace;">${link}</div>
+        <button onclick="copyLink()" id="copyBtn" style="padding:12px 18px; background:#1a2c52; color:#fff; border:none; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; flex-shrink:0;">Copy Link</button>
+      </div>
+      <div id="copiedMsg" style="font-size:12px; color:#1d7a50; height:18px; opacity:0; transition:opacity 0.2s;">Copied to clipboard!</div>
+    </div>`;
+}
+
+function bindEvents() {
+  document.getElementById('linkName')?.addEventListener('input', e => state.name = e.target.value);
+  document.getElementById('startsAt')?.addEventListener('change', e => state.startsAt = e.target.value);
+  document.getElementById('endsAt')?.addEventListener('change', e => state.endsAt = e.target.value);
+}
+
+function selectAccess(m) { state.accessMethod = m; render(); }
+function selectAnonymity(v) {
+  state.anonymous = v;
+  if (v !== 'anonymous') state.showCompletion = false; // reset sub-question
+  render();
+}
+function toggleShowCompletion() { state.showCompletion = !state.showCompletion; render(); }
+function toggleOrg() { state.orgToggle = !state.orgToggle; render(); }
+
+function toggleDropdown(key) {
+  uiState.openDropdown = uiState.openDropdown === key ? null : key;
+  renderBody();
+}
+function toggleOption(key, val) {
+  const arr = state[key];
+  const idx = arr.indexOf(val);
+  if (idx === -1) arr.push(val); else arr.splice(idx, 1);
+  renderBody(); // re-render body only, keeping dropdown open
+}
+function removeOption(key, val) {
+  state[key] = state[key].filter(v => v !== val);
+  renderBody();
+}
+
+// legacy aliases kept for finish() invCount logic (unused now but safe to keep)
+function addCourse(v) { if (v && !state.courses.includes(v)) { state.courses.push(v); renderBody(); } }
+function removeCourse(n) { removeOption('courses', n); }
+function addTeam(v) { if (v && !state.teams.includes(v)) { state.teams.push(v); renderBody(); } }
+function removeTeam(n) { removeOption('teams', n); }
+function addGroup(v) { if (v && !state.groups.includes(v)) { state.groups.push(v); renderBody(); } }
+function removeGroup(n) { removeOption('groups', n); }
+
+function advance() { uiState.openDropdown = null; if (state.step < 5) { state.step++; render(); } }
+function back() { if (state.step > 0) { state.step--; render(); } }
+
+function copyLink() {
+  const link = state._generatedLink || '';
+  navigator.clipboard.writeText(link).catch(() => {});
+  const btn = document.getElementById('copyBtn');
+  const msg = document.getElementById('copiedMsg');
+  btn.textContent = 'Copied!';
+  btn.style.background = '#1d7a50';
+  msg.style.opacity = '1';
+  setTimeout(() => {
+    btn.textContent = 'Copy Link';
+    btn.style.background = '#1a2c52';
+    msg.style.opacity = '0';
+  }, 2000);
+}
+
+function finish() {
+  const fmt = v => {
+    if (!v) return 'mm/dd/yyyy';
+    const [y,m,d] = v.split('-');
+    return `${m}/${d}/${y}`;
+  };
+  const courseCounts = {'Econ 101':85,'Math 53':250,'Bio 201':120,'CS 101':200,'Psych 110':95,'Chem 201':110};
+  const teamCounts   = {'Research Team 1':45,'Research Team 2':38};
+  const groupCounts  = {'Cohort A':85,'Cohort B':67,'Bio Psych Survey Group':152};
+  const invCount = [
+    ...state.courses.map(c => courseCounts[c]||0),
+    ...state.teams.map(t => teamCounts[t]||0),
+    ...state.groups.map(g => groupCounts[g]||0),
+  ].reduce((a,b) => a+b, 0);
+  const invText = invCount > 0 ? `0 / ${invCount}` : '—';
+
+  // Build badges HTML from state
+  const anonLabels = {'anonymous':'Anonymous','identified':'Identified'};
+  let badgesHtml = '';
+  if (state.accessMethod) badgesHtml += `<span class="badge badge-access">${state.accessMethod}</span>`;
+  if (state.anonymous)    badgesHtml += `<span class="badge badge-anon">${anonLabels[state.anonymous]||state.anonymous}</span>`;
+  const allGroups = [...state.courses, ...state.teams, ...state.groups];
+  allGroups.forEach(g => { badgesHtml += `<span class="badge badge-group">${g}</span>`; });
+
+  if (state.editingRow) {
+    // Update the existing row in place
+    const r = state.editingRow;
+    const mocks = r.querySelectorAll('.date-input-mock');
+    if (mocks[0]) mocks[0].textContent = fmt(state.startsAt);
+    if (mocks[1]) mocks[1].textContent = fmt(state.endsAt);
+    r.querySelector('.invited-col').textContent = invText;
+    const b = r.querySelector('.link-badges');
+    if (b) b.innerHTML = badgesHtml;
+  } else {
+    // Create a new row
+    const row = document.getElementById('newLinkRow');
+    document.getElementById('newLinkName').textContent = state.name || 'Untitled Link';
+    document.getElementById('newLinkBadges').innerHTML = badgesHtml;
+    const mocks = row.querySelectorAll('.date-input-mock');
+    if (mocks[0]) mocks[0].textContent = fmt(state.startsAt);
+    if (mocks[1]) mocks[1].textContent = fmt(state.endsAt);
+    document.getElementById('newLinkInvited').textContent = invText;
+    row.style.display = 'grid';
+    row.style.animation = 'fadeIn 0.3s ease';
+  }
+
+  state.step = 6;
+  render();
+}
+
+function todayStr() {
+  const t = new Date();
+  return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+}
+
+function openModal() {
+  Object.assign(state, {step:0, name:'', surveyTitle:'Microbiome & Cognitive Health Study', accessMethod:'', anonymous:'', showCompletion:false, orgToggle:false, courses:[], teams:[], groups:[], startsAt:todayStr(), endsAt:'', editingRow:null});
+  document.getElementById('overlay').classList.remove('hidden');
+  render();
+}
+
+function openConfigure(surveyName, rowEl) {
+  openConfigureAtStep(surveyName, rowEl, 1);
+}
+
+function openConfigureAtStep(surveyName, rowEl, step) {
+  Object.assign(state, {step: step, name: surveyName || '', surveyTitle:'Microbiome & Cognitive Health Study', accessMethod:'', anonymous:'', showCompletion:false, orgToggle:false, courses:[], teams:[], groups:[], startsAt:todayStr(), endsAt:'', editingRow: rowEl || null});
+  document.getElementById('overlay').classList.remove('hidden');
+  render();
+}
+
+function closeModal() {
+  document.getElementById('overlay').classList.add('hidden');
+  hideConfirm();
+}
+
+// Has the user made any selections worth warning about?
+function isDirty() {
+  return !!(
+    state.name ||
+    state.accessMethod ||
+    state.anonymous ||
+    state.orgToggle ||
+    state.courses.length ||
+    state.teams.length ||
+    state.groups.length ||
+    state.startsAt !== todayStr() || // pre-filled default doesn't count as a change
+    state.endsAt
+  );
+}
+
+// Intercept close attempts: warn only if there are unsaved changes
+// and the user isn't on the success screen (where closing is intentional).
+function requestClose() {
+  if (state.step !== 6 && isDirty()) {
+    showConfirm();
+  } else {
+    closeModal();
+  }
+}
+
+function showConfirm() { document.getElementById('confirmOverlay').classList.remove('hidden'); }
+function hideConfirm() { document.getElementById('confirmOverlay').classList.add('hidden'); }
+function cancelDiscard() { hideConfirm(); }
+function confirmDiscard() { closeModal(); }
+
+document.getElementById('closeBtn').addEventListener('click', requestClose);
+document.getElementById('overlay').addEventListener('click', e => { if(e.target===e.currentTarget) requestClose(); });
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('overlay').classList.contains('hidden')) return;
+  if (!document.getElementById('confirmOverlay').classList.contains('hidden')) { hideConfirm(); return; }
+  requestClose();
+});
+
+// Close multi-select when clicking outside it
+document.addEventListener('click', e => {
+  if (uiState.openDropdown && !e.target.closest('[data-ms]')) {
+    uiState.openDropdown = null;
+    renderBody();
+  }
+});
+
+// Wire Configure Access buttons and badges via delegation
+document.querySelector('.table-wrap').addEventListener('click', e => {
+  const row = e.target.closest('.link-row');
+  const name = row?.querySelector('.link-name')?.textContent || '';
+
+  if (e.target.classList.contains('btn-configure')) {
+    openConfigureAtStep(name, row, 1);
+  } else if (e.target.classList.contains('badge-access')) {
+    openConfigureAtStep(name, row, 1); // Access Methods
+  } else if (e.target.classList.contains('badge-anon')) {
+    openConfigureAtStep(name, row, 2); // Identity & Anonymity
+  } else if (e.target.classList.contains('badge-group')) {
+    openConfigureAtStep(name, row, 3); // Invitee List
+  }
+});
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Add subtle fade-in animation for new row
+const style = document.createElement('style');
+style.textContent = '@keyframes fadeIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }';
+document.head.appendChild(style);
+</script>
+</body>
+</html>
