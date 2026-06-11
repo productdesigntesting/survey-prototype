@@ -105,7 +105,7 @@ body {
 
 .table-header {
   display: grid;
-  grid-template-columns: 1fr 130px 200px 180px;
+  grid-template-columns: 1fr 140px 220px 110px 180px;
   padding: 10px 20px;
   border-bottom: 1px solid #e8e8e8;
 }
@@ -119,14 +119,23 @@ body {
 
 .link-row {
   display: grid;
-  grid-template-columns: 1fr 130px 200px 180px;
+  grid-template-columns: 1fr 140px 220px 110px 180px;
   padding: 14px 20px;
   border-bottom: 1px solid #f0f0f0;
   align-items: start;
 }
 .link-row:last-child { border-bottom: none; }
 
-.link-name { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.link-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+
+.link-validity { font-size: 12.5px; color: #777; margin-bottom: 10px; }
+.link-validity.empty { color: #aaa; font-style: italic; }
+
+.access-col, .groups-col {
+  display: flex; flex-wrap: wrap; gap: 5px;
+  padding-top: 2px; align-content: flex-start;
+}
+.col-empty { color: #ccc; font-size: 13px; }
 
 .link-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; align-items: center; }
 
@@ -143,8 +152,6 @@ body {
 .tag.lock { background: #f0f0f0; color: #555; }
 
 .lock-icon { font-size: 11px; }
-
-.link-badges { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; min-height: 0; }
 
 .badge {
   display: inline-flex; align-items: center; gap: 4px;
@@ -177,19 +184,6 @@ body {
   color: #333;
   padding-top: 2px;
   text-align: center;
-}
-
-.dates-col { font-size: 13px; color: #555; }
-.date-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-.date-row:last-child { margin-bottom: 0; }
-.date-input-mock {
-  border: 1px solid #d0d0d0;
-  border-radius: 3px;
-  padding: 4px 8px;
-  font-size: 12px;
-  color: #aaa;
-  background: #fafafa;
-  width: 150px;
 }
 
 .status-col {
@@ -561,8 +555,9 @@ body {
   <div class="table-wrap">
     <div class="table-header">
       <div class="col-label">Link Title</div>
+      <div class="col-label">Access</div>
+      <div class="col-label">Groups</div>
       <div class="col-label" style="text-align:center">Invited /<br>Completed</div>
-      <div class="col-label">Opens / Closes</div>
       <div class="col-label">Status</div>
     </div>
 
@@ -570,14 +565,12 @@ body {
     <div class="link-row">
       <div>
         <div class="link-name">Microbiome & Cognitive Health Study – Distribution Link</div>
-        <div class="link-badges"></div>
+        <div class="link-validity empty">Always open</div>
         <button class="btn-configure">Configure Access</button>
       </div>
+      <div class="access-col"><span class="col-empty">—</span></div>
+      <div class="groups-col"><span class="col-empty">—</span></div>
       <div class="invited-col">—</div>
-      <div class="dates-col">
-        <div class="date-row"><div class="date-input-mock">mm/dd/yyyy</div></div>
-        <div class="date-row"><div class="date-input-mock">mm/dd/yyyy</div></div>
-      </div>
       <div class="status-col">
         <span class="status-badge">Active</span>
         <button class="btn-copy">Copy Link</button>
@@ -589,14 +582,12 @@ body {
     <div class="link-row" id="newLinkRow" style="display:none">
       <div>
         <div class="link-name" id="newLinkName"></div>
-        <div class="link-badges" id="newLinkBadges"></div>
+        <div class="link-validity empty" id="newLinkValidity">Always open</div>
         <button class="btn-configure">Configure Access</button>
       </div>
+      <div class="access-col" id="newLinkAccess"><span class="col-empty">—</span></div>
+      <div class="groups-col" id="newLinkGroups"><span class="col-empty">—</span></div>
       <div class="invited-col" id="newLinkInvited">—</div>
-      <div class="dates-col">
-        <div class="date-row"><div class="date-input-mock" id="newLinkStart">mm/dd/yyyy</div></div>
-        <div class="date-row"><div class="date-input-mock" id="newLinkEnd">mm/dd/yyyy</div></div>
-      </div>
       <div class="status-col">
         <span class="status-badge">Active</span>
         <button class="btn-copy">Copy Link</button>
@@ -947,7 +938,7 @@ function copyLink() {
 
 function finish() {
   const fmt = v => {
-    if (!v) return 'mm/dd/yyyy';
+    if (!v) return '';
     const [y,m,d] = v.split('-');
     return `${m}/${d}/${y}`;
   };
@@ -961,33 +952,34 @@ function finish() {
   ].reduce((a,b) => a+b, 0);
   const invText = invCount > 0 ? `0 / ${invCount}` : '—';
 
-  // Build badges HTML from state
-  let badgesHtml = '';
-  if (state.accessMethod) badgesHtml += `<span class="badge badge-access">${state.accessMethod}</span>`;
-  const allGroups = [...state.courses, ...state.teams, ...state.groups];
-  allGroups.forEach(g => { badgesHtml += `<span class="badge badge-group">${g}</span>`; });
+  // View-only validity line under the link name
+  const starts = fmt(state.startsAt), ends = fmt(state.endsAt);
+  let validity = 'Always open', validityEmpty = true;
+  if (starts && ends) { validity = `Link valid from ${starts} – ${ends}`; validityEmpty = false; }
+  else if (starts)    { validity = `Link valid from ${starts}`;           validityEmpty = false; }
+  else if (ends)      { validity = `Link valid until ${ends}`;            validityEmpty = false; }
 
-  if (state.editingRow) {
-    // Update the existing row in place
-    const r = state.editingRow;
-    const mocks = r.querySelectorAll('.date-input-mock');
-    if (mocks[0]) mocks[0].textContent = fmt(state.startsAt);
-    if (mocks[1]) mocks[1].textContent = fmt(state.endsAt);
-    r.querySelector('.invited-col').textContent = invText;
-    const b = r.querySelector('.link-badges');
-    if (b) b.innerHTML = badgesHtml;
-  } else {
-    // Create a new row
-    const row = document.getElementById('newLinkRow');
+  // Chips for their respective columns
+  const accessHtml = state.accessMethod
+    ? `<span class="badge badge-access">${state.accessMethod}</span>`
+    : '<span class="col-empty">—</span>';
+  const allGroups = [...state.courses, ...state.teams, ...state.groups];
+  const groupsHtml = allGroups.length
+    ? allGroups.map(g => `<span class="badge badge-group">${esc(g)}</span>`).join('')
+    : '<span class="col-empty">—</span>';
+
+  const row = state.editingRow || document.getElementById('newLinkRow');
+  if (!state.editingRow) {
     document.getElementById('newLinkName').textContent = state.name || 'Untitled Link';
-    document.getElementById('newLinkBadges').innerHTML = badgesHtml;
-    const mocks = row.querySelectorAll('.date-input-mock');
-    if (mocks[0]) mocks[0].textContent = fmt(state.startsAt);
-    if (mocks[1]) mocks[1].textContent = fmt(state.endsAt);
-    document.getElementById('newLinkInvited').textContent = invText;
     row.style.display = 'grid';
     row.style.animation = 'fadeIn 0.3s ease';
   }
+  const v = row.querySelector('.link-validity');
+  v.textContent = validity;
+  v.classList.toggle('empty', validityEmpty);
+  row.querySelector('.access-col').innerHTML = accessHtml;
+  row.querySelector('.groups-col').innerHTML = groupsHtml;
+  row.querySelector('.invited-col').textContent = invText;
 
   state.step = 5;
   render();
