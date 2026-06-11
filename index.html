@@ -105,7 +105,7 @@ body {
 
 .table-header {
   display: grid;
-  grid-template-columns: 1fr 140px 220px 110px 180px;
+  grid-template-columns: 1fr 150px 120px 180px;
   padding: 10px 20px;
   border-bottom: 1px solid #e8e8e8;
 }
@@ -119,7 +119,7 @@ body {
 
 .link-row {
   display: grid;
-  grid-template-columns: 1fr 140px 220px 110px 180px;
+  grid-template-columns: 1fr 150px 120px 180px;
   padding: 14px 20px;
   border-bottom: 1px solid #f0f0f0;
   align-items: start;
@@ -132,10 +132,13 @@ body {
 .link-validity:hover { color: #1a56db; text-decoration: underline; }
 .link-validity.empty { color: #aaa; font-style: italic; }
 
-.access-col, .groups-col {
+.access-col {
   display: flex; flex-wrap: wrap; gap: 5px;
   padding-top: 2px; align-content: flex-start;
 }
+
+.link-groups { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.link-groups:empty { display: none; }
 .col-empty { color: #ccc; font-size: 13px; }
 
 .link-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; align-items: center; }
@@ -557,7 +560,6 @@ body {
     <div class="table-header">
       <div class="col-label">Link Title</div>
       <div class="col-label">Access</div>
-      <div class="col-label">Groups</div>
       <div class="col-label" style="text-align:center">Invited /<br>Completed</div>
       <div class="col-label">Status</div>
     </div>
@@ -566,11 +568,11 @@ body {
     <div class="link-row">
       <div>
         <div class="link-name">Microbiome & Cognitive Health Study – Distribution Link</div>
+        <div class="link-groups"></div>
         <div class="link-validity empty">Always open</div>
         <button class="btn-configure">Configure Access</button>
       </div>
       <div class="access-col"><span class="col-empty">—</span></div>
-      <div class="groups-col"><span class="col-empty">—</span></div>
       <div class="invited-col">—</div>
       <div class="status-col">
         <span class="status-badge">Active</span>
@@ -583,11 +585,11 @@ body {
     <div class="link-row" id="newLinkRow" style="display:none">
       <div>
         <div class="link-name" id="newLinkName"></div>
+        <div class="link-groups"></div>
         <div class="link-validity empty" id="newLinkValidity">Always open</div>
         <button class="btn-configure">Configure Access</button>
       </div>
       <div class="access-col" id="newLinkAccess"><span class="col-empty">—</span></div>
-      <div class="groups-col" id="newLinkGroups"><span class="col-empty">—</span></div>
       <div class="invited-col" id="newLinkInvited">—</div>
       <div class="status-col">
         <span class="status-badge">Active</span>
@@ -963,9 +965,7 @@ function finish() {
     ? `<span class="badge badge-access">${state.accessMethod}</span>`
     : '<span class="col-empty">—</span>';
   const allGroups = [...state.courses, ...state.teams, ...state.groups];
-  const groupsHtml = allGroups.length
-    ? allGroups.map(g => `<span class="badge badge-group">${esc(g)}</span>`).join('')
-    : '<span class="col-empty">—</span>';
+  const groupsHtml = allGroups.map(g => `<span class="badge badge-group">${esc(g)}</span>`).join('');
 
   const row = state.editingRow || document.getElementById('newLinkRow');
   if (!state.editingRow) {
@@ -977,7 +977,7 @@ function finish() {
   v.textContent = validity;
   v.classList.toggle('empty', validityEmpty);
   row.querySelector('.access-col').innerHTML = accessHtml;
-  row.querySelector('.groups-col').innerHTML = groupsHtml;
+  row.querySelector('.link-groups').innerHTML = groupsHtml;
   row.querySelector('.invited-col').textContent = invText;
 
   state.step = 5;
